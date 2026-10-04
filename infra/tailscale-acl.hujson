@@ -1,0 +1,94 @@
+{
+	"tagOwners": {
+		"tag:db":       [],
+		"tag:backend":  [],
+		"tag:frontend": [],
+		"tag:security": []
+	},
+
+	"hosts": {
+		"pc1-admin": "100.124.212.16",
+		"pc2-admin": "100.88.30.94",
+		"pc3-admin": "100.119.44.97"
+	},
+
+	"acls": [
+		{
+			"action": "accept",
+			"proto":  "tcp",
+			"src":    ["tag:frontend"],
+			"dst":    ["tag:backend:8107"]
+		},
+		{
+			"action": "accept",
+			"proto":  "tcp",
+			"src":    ["tag:backend"],
+			"dst":    ["tag:db:33067"]
+		},
+		{
+			"action": "accept",
+			"proto":  "tcp",
+			"src": [
+				"tag:db",
+				"tag:backend",
+				"tag:frontend",
+				"pc1-admin",
+				"pc2-admin",
+				"pc3-admin"
+			],
+			"dst": ["tag:security:1514", "tag:security:1515"]
+		},
+		{
+			"action": "accept",
+			"proto":  "tcp",
+			"src":    ["pc1-admin", "pc2-admin", "pc3-admin"],
+			"dst": [
+				"tag:db:22",
+				"tag:backend:22",
+				"tag:frontend:22",
+				"tag:security:22"
+			]
+		},
+		{
+			"action": "accept",
+			"proto":  "tcp",
+			"src":    ["pc1-admin", "pc2-admin", "pc3-admin"],
+			"dst":    ["tag:security:443", "tag:security:9000"]
+		},
+		{
+			"action": "accept",
+			"proto":  "tcp",
+			"src":    ["pc1-admin", "pc2-admin", "pc3-admin"],
+			"dst":    ["tag:backend:8107"]
+		}
+	],
+
+	"ssh": [],
+
+	"tests": [
+		{
+			"src":    "tag:frontend",
+			"proto":  "tcp",
+			"accept": ["tag:backend:8107"],
+			"deny":   ["tag:db:33067"]
+		},
+		{
+			"src":    "tag:backend",
+			"proto":  "tcp",
+			"accept": ["tag:db:33067"],
+			"deny":   ["tag:db:22"]
+		},
+		{
+			"src":    "pc3-admin",
+			"proto":  "tcp",
+			"accept": ["tag:db:22", "tag:backend:8107"],
+			"deny":   ["tag:db:33067"]
+		},
+		{
+			"src":    "pc2-admin",
+			"proto":  "tcp",
+			"accept": ["tag:db:22", "tag:backend:8107", "tag:security:443"],
+			"deny":   ["tag:db:33067"]
+		}
+	]
+}
