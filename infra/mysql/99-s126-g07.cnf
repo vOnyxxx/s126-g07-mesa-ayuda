@@ -1,0 +1,9 @@
+[mysqld]
+port = 33067
+bind-address = 100.68.48.48
+mysqlx = 0
+require_secure_transport = ON
+general_log = OFF
+log_error = /var/log/mysql/error.log
+log_error_verbosity = 3
+skip_name_resolve = ON

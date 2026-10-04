@@ -1,0 +1,10 @@
+[Unit]
+Description=Respaldo cifrado diario de mesa_ayuda
+
+[Timer]
+OnCalendar=*-*-* 08:00:00 UTC
+Persistent=true
+Unit=sg-mesa-backup.service
+
+[Install]
+WantedBy=timers.target
