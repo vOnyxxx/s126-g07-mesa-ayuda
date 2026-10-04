@@ -1,0 +1,7 @@
+services:
+  backend:
+    build: .
+    env_file: .env
+    ports:
+      - "${APP_PORT:-8000}:${APP_PORT:-8000}"
+    restart: unless-stopped

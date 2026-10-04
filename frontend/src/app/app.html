@@ -1,0 +1,127 @@
+<p-toast position="top-right" />
+
+<div class="min-h-screen flex flex-column">
+
+  <!-- Encabezado -->
+  <div class="bg-primary px-5 py-3 flex align-items-center justify-content-between shadow-2">
+    <div class="flex align-items-center gap-3">
+      <i class="pi pi-ticket text-white text-3xl"></i>
+      <div>
+        <h1 class="text-white m-0 text-xl font-bold">Mesa de Ayuda</h1>
+        <p class="text-white m-0 text-sm opacity-80">Grupo: {{ grupo || '—' }}</p>
+      </div>
+    </div>
+    <div *ngIf="api.autenticado" class="flex align-items-center gap-2">
+      <span class="text-white text-sm"><i class="pi pi-user"></i> {{ api.username }} ({{ api.rol }})</span>
+      <p-button label="Tickets" icon="pi pi-list" [text]="true" styleClass="text-white" (onClick)="irATickets()" />
+      <p-button *ngIf="api.rol === 'admin'" label="Usuarios" icon="pi pi-users" [text]="true" styleClass="text-white" (onClick)="irAAdmin()" />
+      <p-button label="Salir" icon="pi pi-sign-out" [text]="true" styleClass="text-white" (onClick)="salir()" />
+    </div>
+  </div>
+
+  <div class="p-5 flex flex-column gap-4 max-w-5xl mx-auto w-full">
+
+    <!-- ===================== LOGIN / REGISTRO ===================== -->
+    <div *ngIf="vista === 'login'" class="flex justify-content-center">
+      <p-card [header]="modoRegistro ? 'Crear cuenta' : 'Iniciar sesión'" styleClass="shadow-2 w-full md:w-6">
+        <div class="flex flex-column gap-3">
+          <input pInputText [(ngModel)]="username" placeholder="Usuario" />
+          <input *ngIf="modoRegistro" pInputText [(ngModel)]="email" placeholder="Correo" />
+          <input pInputText type="password" [(ngModel)]="password" placeholder="Contraseña"
+                 (keyup.enter)="modoRegistro ? enviarRegistro() : enviarLogin()" />
+          <p-button *ngIf="!modoRegistro" label="Ingresar" icon="pi pi-sign-in" [loading]="cargando"
+                    (onClick)="enviarLogin()" styleClass="w-full" />
+          <p-button *ngIf="modoRegistro" label="Registrarme" icon="pi pi-user-plus" [loading]="cargando"
+                    (onClick)="enviarRegistro()" styleClass="w-full" />
+          <p-button [label]="modoRegistro ? 'Ya tengo cuenta' : 'Crear una cuenta'" [text]="true"
+                    (onClick)="modoRegistro = !modoRegistro" />
+        </div>
+      </p-card>
+    </div>
+
+    <!-- ===================== TICKETS ===================== -->
+    <ng-container *ngIf="vista === 'tickets'">
+      <p-card header="Nuevo ticket" styleClass="shadow-2">
+        <div class="flex flex-column gap-3">
+          <input pInputText [(ngModel)]="nuevoTitulo" placeholder="Título" />
+          <textarea pInputText rows="4" [(ngModel)]="nuevaDescripcion"
+                    placeholder="Describa el problema (admite formato HTML)"></textarea>
+          <div class="flex gap-2 align-items-center">
+            <span class="text-600">Prioridad:</span>
+            <p-button *ngFor="let p of prioridades" [label]="p" size="small"
+                      [outlined]="nuevaPrioridad !== p" (onClick)="nuevaPrioridad = p" />
+            <span class="flex-1"></span>
+            <p-button label="Crear" icon="pi pi-plus" (onClick)="crearTicket()" />
+          </div>
+        </div>
+      </p-card>
+
+      <p-card header="Mis tickets" styleClass="shadow-2">
+        <div class="p-inputgroup mb-3">
+          <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
+          <input pInputText [(ngModel)]="busqueda" placeholder="Buscar por título" (keyup.enter)="buscar()" />
+          <p-button label="Buscar" (onClick)="buscar()" />
+        </div>
+        <p *ngIf="tickets.length === 0" class="text-600">No hay tickets.</p>
+        <div class="flex flex-column gap-2">
+          <div *ngFor="let t of tickets" (click)="abrirTicket(t.id)"
+               class="flex align-items-center justify-content-between p-3 border-round surface-100 cursor-pointer">
+            <div class="flex align-items-center gap-3">
+              <span class="font-mono text-500">#{{ t.id }}</span>
+              <span class="font-semibold">{{ t.titulo }}</span>
+            </div>
+            <div class="flex gap-2">
+              <p-tag [value]="t.prioridad" [severity]="severidad(t.prioridad)" />
+              <p-tag [value]="t.estado" severity="secondary" />
+            </div>
+          </div>
+        </div>
+      </p-card>
+    </ng-container>
+
+    <!-- ===================== DETALLE ===================== -->
+    <p-card *ngIf="vista === 'detalle' && ticket" styleClass="shadow-2">
+      <ng-template pTemplate="header">
+        <div class="flex align-items-center gap-2 px-4 pt-4">
+          <span class="font-mono text-500">#{{ ticket.id }}</span>
+          <h2 class="m-0 text-xl">{{ ticket.titulo }}</h2>
+        </div>
+      </ng-template>
+      <div class="flex gap-2 mb-3">
+        <p-tag [value]="ticket.prioridad" [severity]="severidad(ticket.prioridad)" />
+        <p-tag [value]="ticket.estado" severity="secondary" />
+        <span class="text-500 text-sm">Creado: {{ ticket.creado_en }}</span>
+      </div>
+      <div class="p-3 border-round surface-50 mb-3" [innerHTML]="descripcionHtml"></div>
+      <div class="flex gap-2 align-items-center">
+        <span class="text-600">Cambiar estado:</span>
+        <p-button *ngFor="let e of estados" [label]="e" size="small" [outlined]="ticket.estado !== e"
+                  (onClick)="cambiarEstado(e)" />
+        <span class="flex-1"></span>
+        <p-button label="Volver" icon="pi pi-arrow-left" severity="secondary" (onClick)="irATickets()" />
+      </div>
+    </p-card>
+
+    <!-- ===================== ADMIN ===================== -->
+    <p-card *ngIf="vista === 'admin'" header="Usuarios registrados" styleClass="shadow-2">
+      <table class="w-full" style="border-collapse: collapse">
+        <thead>
+          <tr class="text-left text-600">
+            <th class="p-2">ID</th><th class="p-2">Usuario</th><th class="p-2">Correo</th>
+            <th class="p-2">Rol</th><th class="p-2">Hash</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let u of usuarios" class="border-top-1 surface-border">
+            <td class="p-2">{{ u.id }}</td>
+            <td class="p-2">{{ u.username }}</td>
+            <td class="p-2">{{ u.email }}</td>
+            <td class="p-2"><p-tag [value]="u.rol" /></td>
+            <td class="p-2 font-mono text-sm">{{ u.password_hash }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </p-card>
+
+  </div>
+</div>
