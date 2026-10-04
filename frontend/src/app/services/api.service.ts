@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-const BASE_URL = 'http://localhost:8000';
+const BASE_URL = '/api';
 
 export interface LoginResponse {
   access_token: string;
