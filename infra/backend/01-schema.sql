@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(120) NOT NULL,
+    password_hash VARCHAR(64) NOT NULL,
+    rol VARCHAR(20) NOT NULL DEFAULT 'usuario',
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS tickets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(150) NOT NULL,
+    descripcion TEXT NOT NULL,
+    prioridad VARCHAR(10) NOT NULL DEFAULT 'media',
+    estado VARCHAR(20) NOT NULL DEFAULT 'abierto',
+    usuario_id INT,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
+
+SHOW TABLES;

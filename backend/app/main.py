@@ -5,7 +5,7 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import config
-from app.database import execute, fetch_all, fetch_one, init_db
+from app.database import execute, fetch_all, fetch_one
 from app.schemas import EstadoIn, LoginIn, RegistroIn, TicketIn
 from app.security import crear_token, hash_password, usuario_actual, verify_password
 
@@ -27,10 +27,6 @@ app.add_middleware(
 )
 
 
-@app.on_event("startup")
-def startup():
-    init_db()
-    logger.info("Base de datos inicializada")
 
 
 # ---------------------------------------------------------------- General

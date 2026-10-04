@@ -1,7 +1,9 @@
 services:
   backend:
     build: .
-    env_file: .env
+    env_file:
+      - path: /etc/mesa-ayuda/backend.env
+        format: raw
     ports:
-      - "${APP_PORT:-8000}:${APP_PORT:-8000}"
+      - "100.70.226.73:8107:8107"
     restart: unless-stopped
