@@ -3,3 +3,4 @@ venv/
 *.pyc
 .env
 .env.*
+env_del_examen.txt
