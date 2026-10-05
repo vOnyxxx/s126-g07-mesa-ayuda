@@ -1,10 +1,13 @@
 import hashlib
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import jwt
 from fastapi import Header, HTTPException
 
 from app import config
+
+TOKEN_TTL = timedelta(hours=8)
+CLOCK_LEEWAY_SECONDS = 10  # tolera el desfase de reloj entre nodos de la tailnet
 
 
 def hash_password(password: str) -> str:
@@ -16,11 +19,13 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 
 def crear_token(usuario: dict) -> str:
+    ahora = datetime.now(timezone.utc)
     payload = {
         "sub": str(usuario["id"]),
         "username": usuario["username"],
         "rol": usuario["rol"],
-        "iat": int(datetime.utcnow().timestamp()),
+        "iat": int(ahora.timestamp()),
+        "exp": int((ahora + TOKEN_TTL).timestamp()),
     }
     return jwt.encode(payload, config.JWT_SECRET, algorithm=config.JWT_ALGORITHM)
 
@@ -33,8 +38,8 @@ def usuario_actual(authorization: str = Header(default="")) -> dict:
         payload = jwt.decode(
             token,
             config.JWT_SECRET,
-            algorithms=["HS256"],
-            options={"verify_signature": False},
+            algorithms=[config.JWT_ALGORITHM],
+            leeway=CLOCK_LEEWAY_SECONDS,
         )
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Token inválido")
