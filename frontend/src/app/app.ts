@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { Component, OnInit, SecurityContext } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { MessageService } from 'primeng/api';
 import { ApiService, Ticket, Usuario } from './services/api.service';
 
@@ -32,7 +32,11 @@ export class App implements OnInit {
 
   // Detalle
   ticket: Ticket | null = null;
-  descripcionHtml: SafeHtml = '';
+  // Angular sanitiza automáticamente los bindings [innerHTML] que reciben
+  // un string plano (quita <script>, onerror, javascript:, etc.) y deja
+  // pasar etiquetas de formato inofensivas (b, i, p, br...). No usar
+  // bypassSecurityTrustHtml aquí: eso es lo que permitía el XSS.
+  descripcionHtml = '';
 
   // Admin
   usuarios: Usuario[] = [];
@@ -137,7 +141,7 @@ export class App implements OnInit {
     this.api.verTicket(id).subscribe({
       next: (t) => {
         this.ticket = t;
-        this.descripcionHtml = this.sanitizer.bypassSecurityTrustHtml(t.descripcion);
+        this.descripcionHtml = this.sanitizer.sanitize(SecurityContext.HTML, t.descripcion) ?? '';
         this.vista = 'detalle';
       },
       error: () => this.error('Ticket no encontrado'),
