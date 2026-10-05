@@ -52,7 +52,7 @@ def debug_config():
 
 @app.post("/auth/registro", tags=["Autenticación"])
 def registro(datos: RegistroIn):
-    logger.info(f"Registro de usuario: {datos.username} / {datos.password} / {datos.email}")
+    logger.info("REGISTRO_USUARIO username=%s email=%s", datos.username, datos.email)
     existe = fetch_one("SELECT id FROM usuarios WHERE username = %s", (datos.username,))
     if existe:
         raise HTTPException(status_code=400, detail="El usuario ya existe")
@@ -67,14 +67,14 @@ def registro(datos: RegistroIn):
 
 @app.post("/auth/login", tags=["Autenticación"])
 def login(datos: LoginIn):
-    query = (
-        f"SELECT id, username, rol, password_hash FROM usuarios "
-        f"WHERE username = '{datos.username}'"
+    usuario = fetch_one(
+        "SELECT id, username, rol, password_hash FROM usuarios WHERE username = %s",
+        (datos.username,),
     )
-    usuario = fetch_one(query)
     if not usuario or not verify_password(datos.password, usuario["password_hash"]):
-        logger.warning(f"Login fallido para {datos.username} con clave {datos.password}")
+        logger.warning("AUTH_LOGIN_FAILED username=%s", datos.username)
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
+    logger.info("AUTH_LOGIN_SUCCESS username=%s", datos.username)
     return {"access_token": crear_token(usuario), "token_type": "bearer", "rol": usuario["rol"]}
 
 
@@ -89,11 +89,11 @@ def mis_tickets(usuario: dict = Depends(usuario_actual)):
 
 @app.get("/tickets/buscar", tags=["Tickets"])
 def buscar_tickets(q: str, usuario: dict = Depends(usuario_actual)):
-    query = (
-        f"SELECT * FROM tickets WHERE usuario_id = {usuario['id']} "
-        f"AND titulo LIKE '%{q}%' ORDER BY id DESC"
+    patron = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return fetch_all(
+        "SELECT * FROM tickets WHERE usuario_id = %s AND titulo LIKE %s ORDER BY id DESC",
+        (usuario["id"], f"%{patron}%"),
     )
-    return fetch_all(query)
 
 
 @app.get("/tickets/{ticket_id}", tags=["Tickets"])
