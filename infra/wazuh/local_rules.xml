@@ -1,0 +1,28 @@
+<!-- Reglas locales documentadas y probadas para el grupo S126-G07. -->
+<group name="mesa_ayuda,authentication_failed,">
+  <rule id="100000" level="10">
+    <decoded_as>mesa_ayuda_auth_failed</decoded_as>
+    <description>Mesa Ayuda: failed login detected</description>
+    <group>authentication_failed,</group>
+  </rule>
+
+  <rule id="100001" level="12" frequency="5" timeframe="60">
+    <if_matched_sid>100000</if_matched_sid>
+    <same_source_ip />
+    <description>Mesa Ayuda: 5 failed login attempts from same IP in 60 seconds</description>
+    <group>authentication_failed,bruteforce,</group>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+  </rule>
+
+  <rule id="100002" level="12" frequency="5" timeframe="60">
+    <if_matched_sid>5716</if_matched_sid>
+    <same_source_ip />
+    <description>SSH: 5 authentication failures from same IP in 60 seconds</description>
+    <group>authentication_failed,bruteforce,</group>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+  </rule>
+</group>

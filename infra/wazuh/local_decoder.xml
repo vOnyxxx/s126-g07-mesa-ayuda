@@ -1,0 +1,6 @@
+<!-- Decoder local utilizado para los eventos sanitizados de Mesa Ayuda. -->
+<decoder name="mesa_ayuda_auth_failed">
+  <prematch>^AUTH_LOGIN_FAILED</prematch>
+  <regex type="pcre2">^AUTH_LOGIN_FAILED user=(\S+) ip=(\S+)$</regex>
+  <order>dstuser,srcip</order>
+</decoder>
