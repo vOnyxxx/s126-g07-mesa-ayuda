@@ -11,3 +11,11 @@ JWT_ALGORITHM = "HS256"
 
 GRUPO_CODIGO = os.getenv("GRUPO_CODIGO", "SIN-CODIGO")
 APP_PORT = int(os.getenv("APP_PORT", "8000"))
+
+# Origenes de navegador autorizados para llamar la API directamente (CORS).
+# El flujo normal del frontend usa /api como ruta relativa detrás de Nginx,
+# por lo que no depende de CORS; esta lista solo habilita pruebas directas
+# (p. ej. Swagger) desde orígenes explícitos. Vacío por defecto: sin
+# CORS_ORIGINS configurado, ningún navegador externo puede leer la
+# respuesta de una petición con credenciales.
+CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
