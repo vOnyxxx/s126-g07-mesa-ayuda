@@ -47,7 +47,7 @@ def init_db():
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     username VARCHAR(50) UNIQUE NOT NULL,
                     email VARCHAR(120) NOT NULL,
-                    password_hash VARCHAR(64) NOT NULL,
+                    password_hash VARCHAR(100) NOT NULL,
                     rol VARCHAR(20) NOT NULL DEFAULT 'usuario',
                     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )

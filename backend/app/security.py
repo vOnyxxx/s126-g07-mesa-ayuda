@@ -1,6 +1,6 @@
-import hashlib
 from datetime import datetime, timedelta, timezone
 
+import bcrypt
 import jwt
 from fastapi import Header, HTTPException
 
@@ -11,11 +11,17 @@ CLOCK_LEEWAY_SECONDS = 10  # tolera el desfase de reloj entre nodos de la tailne
 
 
 def hash_password(password: str) -> str:
-    return hashlib.md5(password.encode()).hexdigest()
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
 def verify_password(password: str, password_hash: str) -> bool:
-    return hash_password(password) == password_hash
+    try:
+        return bcrypt.checkpw(password.encode(), password_hash.encode())
+    except ValueError:
+        # Hash heredado de la version con MD5 (sin sal, 32 hex). Se rechaza
+        # en texto plano: el usuario debe restablecer su contrasena para
+        # migrar a bcrypt en el proximo cambio.
+        return False
 
 
 def crear_token(usuario: dict) -> str:
